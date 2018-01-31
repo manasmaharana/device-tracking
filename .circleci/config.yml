@@ -19,7 +19,7 @@ jobs:
       # prepare for newly installed packages that end up in ~/.bin
       - run:
           name: Add ~/.bin to $PATH
-          command: mkdir -p ~/.bin || echo 'export PATH=${PATH}:${HOME}/.bin' >> $BASH_ENV
+          command: mkdir -p ~/.bin \ echo 'export PATH=${PATH}:${HOME}/.bin' >> $BASH_ENV
       - setup_remote_docker: version: 17.06.0-ce
   deploy
 	# build the code
