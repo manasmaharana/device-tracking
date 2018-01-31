@@ -18,8 +18,8 @@ jobs:
           command: sudo pip install \ docker-compose==1.12.0 \ awscli==1.11.76
       # prepare for newly installed packages that end up in ~/.bin
       - run:
-          name: Add ~/.bin to $PATH
-	  command: |
+name: Add ~/.bin to $PATH
+command: |
 sudo pip install \
 docker-compose==1.12.0 \
 awscli==1.11.76
