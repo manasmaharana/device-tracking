@@ -1,93 +1,46 @@
 version: 2
 jobs:
-build:
-working_directory: ~/device-tracking
-docker:
-# name of root build image
-- image: circleci/python:3.6.1
-environment:
-TERRAFORM_VERSION: 0.11.1
-TERRAFORM_PROJECT: "device-tracking"
-ECR_REPOSITORY_NAME: "docker-hello-world"
-DEVOPS_CI_VERSION: "1.0.48"
-steps:
-# checkout the files from github
-- checkout
-- run:
-name: Install dependencies
-command: |
-sudo pip install \
-docker-compose==1.12.0 \
-awscli==1.11.76
-# prepare for newly installed packages that end up in ~/.bin
-- run:
-name: Add ~/.bin to $PATH
-command: |
-mkdir -p ~/.bin
-echo 'export PATH=${PATH}:${HOME}/.bin' >> $BASH_ENV
-- setup_remote_docker:
-version: 17.06.0-ce
-# clone devops.ci from github and set some initial variables for use in other
-scripts
-- run:
-config.yml Expand
-source
+  build:
+    docker:
+      # name of root build image
+      - image: circleci/python:3.6.1
+    working_directory: ~/device-tracking
+    environment:
+      - TERRAFORM_VERSION: 0.11.1
+      - TERRAFORM_PROJECT: "device-tracking"
+      - ECR_REPOSITORY_NAME: "docker-hello-world"
+      - DEVOPS_CI_VERSION: "1.0.48"
+    steps:
+      # checkout the files from github
+      - checkout
+      - run:
+          name: Install Ruby dependencies
+          command: |
+		sudo pip install \
+		docker-compose==1.12.0 \
+		awscli==1.11.76
+      # prepare for newly installed packages that end up in ~/.bin
+      - run:
+          name: Add ~/.bin to $PATH
+          command: |
+		mkdir -p ~/.bin
+		echo 'export PATH=${PATH}:${HOME}/.bin' >> $BASH_ENV
+      - setup_remote_docker: 
+	  version: 17.06.0-ce
+  deploy
+	# build the code
+	- run:
+	  name: Build device-tracker
+	  command: mvn clean build
 
-name: Download devops.ci
-command: |
-# set the DEPLOY_ENV and AUTO_DEPLOY flags
-# when DEPLOY_ENV is "none" the no logs go to Toolbox.
-# when AUTO_DEPLOY is false, nothing will go to terraform plan
-if [ $CIRCLE_BRANCH = 'develop' ]; then
-DEPLOY_ENV=development
-AWS_KEY=$dev_acces_key
-AWS_SECRET=$dev_secret_key
-AUTO_DEPLOY=true
-else
-# there is no corresponding terraform env for PR builds
-DEPLOY_ENV=none
-AUTO_DEPLOY=false
-fi
-echo "export DEPLOY_ENV=$DEPLOY_ENV" >> $BASH_ENV
-echo "export AUTO_DEPLOY=$AUTO_DEPLOY" >> $BASH_ENV
-git clone https://github.com/fewknow/devops.ci.git .ci
-# cd .ci && git fetch --tags && git checkout tags/$DEVOPS_CI_VERSION -b
-deploy
-# build the code
-- run:
-name: Build
-command: |
-cd .ci
-chmod +x build_checker.sh
-set +e
-./build_checker.sh "$ECR_REPOSITORY_NAME" "$CIRCLE_SHA1"
-if [ $? -ne 0 ]; then
-chmod +x build.sh
-set -e
-echo "Calling ./build.sh"
-./build.sh
-fi
-# test the code
-- run:
-name: Test
-command: |
-cd .ci
-set +e
-./build_checker.sh "$ECR_REPOSITORY_NAME" "$CIRCLE_SHA1"
-if [ $? -ne 0 ]; then
-set -e
-echo "Calling ./test.sh"
-chmod +x test.sh
-./test.sh
-fi
-# build the container and deploy
-- run:
-name: Container Build & Deploy
-command: |
-cd .ci
-echo 'CIRCLE_PROJECT_REPONAME is ${CIRCLE_PROJECT_REPONAME}'
-chmod +x go.sh
-./go.sh "$CIRCLE_PROJECT_REPONAME" "$CIRCLE_SHA1" "$CIRCLE_BRANCH"
-"$CIRCLE_BUILD_NUM" "$DEPLOY_ENV" "$TERRAFORM_VERSION" "$TERRAFORM_PROJECT"
-
-"$ECR_REPOSITORY_NAME" "$AWS_KEY" "$AWS_SECREY" "default_service" "cpu_autoscaling"
+workflows:
+  version: 2
+  build-deploy:
+    jobs:
+      - build
+      - deploy:
+          requires:
+            - build
+          filters:
+            branches:
+              only: master

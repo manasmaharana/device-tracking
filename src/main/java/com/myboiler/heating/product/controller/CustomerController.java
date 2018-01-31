@@ -42,41 +42,7 @@ public class CustomerController {
 		List<Customer> customer = customerService.getAllCustomer();
 		return new ResponseEntity<List<Customer>>(customer, HttpStatus.OK);				
 	}
-	@ApiOperation(value = "Search a customer with an Name",response = Customer.class)
-	@GetMapping("name/{firstName}/{lastName}")
-	public ResponseEntity<Customer> getCustomerByName(@PathVariable("firstName") String firstName, @PathVariable("lastName") String lastName)
-	{
-		Customer customer = customerService.getCustomerByName(firstName, lastName);
-		return new ResponseEntity<Customer>(customer, HttpStatus.OK);
-	}
-	@ApiOperation(value = "Search a customer with an ID",response = Customer.class)
-	@GetMapping("getbyid/{id}")
-	public ResponseEntity<Customer> getCustomerByID(@PathVariable("id") long customerId)
-	{
-		Customer customer = customerService.getCustomerByID(customerId);
-		return new ResponseEntity<Customer>(customer, HttpStatus.OK);
-	}
-	@ApiOperation(value = "Search a customer by Region",response = Iterable.class)
-	@GetMapping("regionwise/{region}")
-	public ResponseEntity<List<Customer>> getCustomerByRegion(@PathVariable("region") String region)
-	{
-		List<Customer> customer = customerService.getCustomerByRegion(region);
-		return new ResponseEntity<List<Customer>>(customer, HttpStatus.OK);
-	}
-	@ApiOperation(value = "Search a customer by City",response = Iterable.class)
-	@GetMapping("citywise/{city}")
-	public ResponseEntity<List<Customer>> getCustomerByCity(@PathVariable("city") String city)
-	{
-		List<Customer> customer = customerService.getCustomerByCity(city);
-		return new ResponseEntity<List<Customer>>(customer, HttpStatus.OK);
-	}
-	@ApiOperation(value = "Search a customer by Company name",response = Iterable.class)
-	@GetMapping("company/{companyName}")
-	public ResponseEntity<List<Customer>> getCustomerByCompany(@PathVariable("companyName") String companyName)
-	{
-		List<Customer> customer = customerService.getCustomerByCompany(companyName);
-		return new ResponseEntity<List<Customer>>(customer, HttpStatus.OK);
-	}
+	
 	@ApiOperation(value = "Register a customer")
 	@PostMapping("register")
 	public ResponseEntity<Void> saveCustomer(@RequestBody Customer customer)
